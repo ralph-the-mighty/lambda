@@ -1,51 +1,44 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
-import Html exposing (Html, span, div, text, input, button)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
+import Html exposing (Html, button, div, text)
+import Html.Events exposing (onClick)
+import String.Interpolate exposing(interpolate)
+import LambdaCalc exposing (..)
 
 
+type alias Model =
+    { expr : Expr }
 
 
-main = Browser.sandbox { init = init, update = update, view = view }
+initialModel : Model
+initialModel =
+    { expr = App (store "Y") (Var "func") }
 
 
+type Msg
+    = Apply
 
 
-type Expr = Value Int
-          | Name String
-          | Abstraction String Expr
-          | Application Expr Expr
-
-
-
-
-type alias Model = Expr
-
-
-init : Model
-init = Application (Abstraction ("x" Name "x") Value 2)
-
-
-type Msg 
-  = TextUpdate String
-
-
-update: Msg -> Model -> Model
+update : Msg -> Model -> Model
 update msg model =
-  case msg of
-    TextUpdate s -> s
+    case msg of
+        Apply ->
+            { model | expr = (apply model.expr) }
 
 
 view : Model -> Html Msg
 view model =
-  div [] 
-  [ button [onInput TextUpdate] [ text "Evaluate"]
-  , span [] [text (printExpr model.expr)]
-  ]
+    div []
+        [ button [ onClick Apply ] [ text "reduce" ]
+        , div [] [ text <| (printExpr model.expr) ]
+        ]
 
 
-printExpr: Expr -> String
-printExpr expr =
-  "This is the expression"
+main : Program () Model Msg
+main =
+    Browser.sandbox
+        { init = initialModel
+        , view = view
+        , update = update
+        }
