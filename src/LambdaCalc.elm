@@ -24,7 +24,7 @@ substitute varname body rand =
         then rand
         else Var(localname)
     Lam v1 expr ->
-      substitute varname expr rand
+      Lam v1 (substitute varname expr rand)
     App localraptor localrand ->
       (App (substitute varname localraptor rand) (substitute varname localrand rand ) )
     Err string ->
