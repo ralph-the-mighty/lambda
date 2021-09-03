@@ -74,6 +74,11 @@ outermostfirst expr =
       ->  Nothing
 
 
+parse : String -> Expr
+parse str =
+  Lam "x" (Var "x")
+
+
 
 
 printExpr : Expr -> String

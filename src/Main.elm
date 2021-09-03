@@ -1,26 +1,32 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, text, input)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput)
 import String.Interpolate exposing(interpolate)
 import LambdaCalc exposing (..)
 import LambdaCalc exposing (outermostfirst)
 
 
 type alias Model =
-    { expr : Expr }
+    { expr : Expr
+    , text : String
+    }
 
 
 initialModel : Model
 initialModel =
-    -- { expr = App (store "Y") (Var "func") }
-    {expr = (store "id")}
+    { expr = App (store "Y") (Var "func")
+    , text = ""
+    }
 
 
 type Msg
     = ReduceOld
     | ReduceOutermost
+    | TextUpdate String
+    | Parse
 
 
 update : Msg -> Model -> Model
@@ -35,6 +41,10 @@ update msg model =
                 -> {model | expr = newexpr}
               Nothing
                 -> model
+        TextUpdate s
+          -> {model | text = s}
+        Parse
+          -> {model | expr = parse model.text }
 
 
 view : Model -> Html Msg
@@ -44,6 +54,8 @@ view model =
         , button [ onClick ReduceOutermost ] [ text "reduce (outermost first)" ]
         , div [] [ text <| (printExpr model.expr) ]
         , div [] [ text <| (printTypes model.expr) ]
+        , input [ placeholder "Type Lambda Expression here", value model.text, onInput TextUpdate ] []
+        , button [ onClick Parse] [text "parse"]
         ]
 
 
