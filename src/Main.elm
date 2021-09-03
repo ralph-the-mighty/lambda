@@ -14,7 +14,8 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { expr = App (store "Y") (Var "func") }
+    -- { expr = App (store "Y") (Var "func") }
+    {expr = (store "id")}
 
 
 type Msg

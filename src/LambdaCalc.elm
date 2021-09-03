@@ -3,10 +3,6 @@ module LambdaCalc exposing (..)
 import String.Interpolate exposing(interpolate)
 import Debug
 
-      
-
-
--- Core Lambda stuff
 
 type Expr
   = Var String
@@ -54,68 +50,31 @@ apply expr =
 
 
 
-
--- outermostfirst : Expr -> Maybe Expr
--- outermostfirst expr =
---   case expr of
---     Var _
---       -> Nothing
---     Lam _ _
---       -> Nothing
---     App raptor rand ->
---       case raptor of
---         Lam s raptorBody
---           -> Just(substitute s raptorBody rand)
---         App lhs rhs 
---           ->  let try_lhs = outermostfirst lhs 
---               in
---                 case try_lhs of
---                   Just e
---                     -> Just (App e rhs)
---                   Nothing
---                     -> outermostfirst rhs
-
---         _
---           -> Nothing
-
---     Err string
---       -> Just (Err(string))
-
-
 outermostfirst : Expr -> Maybe Expr
 outermostfirst expr =
   case expr of
     App raptor rand ->
       case raptor of
         Lam s raptorBody
-          -> Debug.log "Reduce Lambda " Just(substitute s raptorBody rand)
+          -> Just(substitute s raptorBody rand)
         _  -> let try_lhs = outermostfirst raptor 
               in
                 case try_lhs of
                   Just e
-                    -> Debug.log "Success" (Just e)
+                    -> (Just e)
                   Nothing
-                    -> Debug.log "Reduce rand" Just (App raptor (Maybe.withDefault (Err "s") (outermostfirst rand)))
-    Var v 
-      -> Debug.log (interpolate "Cannot reduce Var {0}" [v]) Nothing
-    Lam v body
-      -> Debug.log (interpolate "Cannot reduce Lam {0}..." [v]) Nothing
-    Err s
-      -> Debug.log (interpolate "Cannot reduce Err: '{0}'" [s]) Nothing
+                    -> Just (App raptor (Maybe.withDefault rand (outermostfirst rand))) -- Not sure what the default should be here
+                    -- should probabaly repeat the structure of the try_lhs on the rhs and return a nothing if they
+                    -- both fail.
+    Var _
+      ->  Nothing
+    Lam _ _
+      ->  Nothing
+    Err _
+      ->  Nothing
 
 
- 
 
-
-
-{-
-Evaluation strategy:
-to preform an application, we need to replace every unbound
-instance of the argument name in the argument with a copy
-of the rand.  We can keep a list of bound variable names
-as we go down the tree and alpha substitute when we
-needed to.
--}
 
 printExpr : Expr -> String
 printExpr expr =
