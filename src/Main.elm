@@ -5,6 +5,7 @@ import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
 import String.Interpolate exposing(interpolate)
 import LambdaCalc exposing (..)
+import LambdaCalc exposing (outermostfirst)
 
 
 type alias Model =
@@ -17,21 +18,31 @@ initialModel =
 
 
 type Msg
-    = Apply
+    = ReduceOld
+    | ReduceOutermost
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Apply ->
-            { model | expr = (apply model.expr) }
+        ReduceOld ->
+          { model | expr = (apply model.expr) }
+        ReduceOutermost ->
+          let reduction = outermostfirst model.expr in
+            case reduction of
+              Just newexpr
+                -> {model | expr = newexpr}
+              Nothing
+                -> model
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick Apply ] [ text "reduce" ]
+        [ button [ onClick ReduceOld ] [ text "reduce (old)" ]
+        , button [ onClick ReduceOutermost ] [ text "reduce (outermost first)" ]
         , div [] [ text <| (printExpr model.expr) ]
+        , div [] [ text <| (printTypes model.expr) ]
         ]
 
 

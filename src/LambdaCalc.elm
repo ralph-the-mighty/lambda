@@ -1,7 +1,7 @@
 module LambdaCalc exposing (..)
 
 import String.Interpolate exposing(interpolate)
-
+import Debug
 
       
 
@@ -50,6 +50,60 @@ apply expr =
           -> substitute s raptorBody rand
     Err string
       -> Err(string)
+
+
+
+
+
+-- outermostfirst : Expr -> Maybe Expr
+-- outermostfirst expr =
+--   case expr of
+--     Var _
+--       -> Nothing
+--     Lam _ _
+--       -> Nothing
+--     App raptor rand ->
+--       case raptor of
+--         Lam s raptorBody
+--           -> Just(substitute s raptorBody rand)
+--         App lhs rhs 
+--           ->  let try_lhs = outermostfirst lhs 
+--               in
+--                 case try_lhs of
+--                   Just e
+--                     -> Just (App e rhs)
+--                   Nothing
+--                     -> outermostfirst rhs
+
+--         _
+--           -> Nothing
+
+--     Err string
+--       -> Just (Err(string))
+
+
+outermostfirst : Expr -> Maybe Expr
+outermostfirst expr =
+  case expr of
+    App raptor rand ->
+      case raptor of
+        Lam s raptorBody
+          -> Debug.log "Reduce Lambda " Just(substitute s raptorBody rand)
+        _  -> let try_lhs = outermostfirst raptor 
+              in
+                case try_lhs of
+                  Just e
+                    -> Debug.log "Success" (Just e)
+                  Nothing
+                    -> Debug.log "Reduce rand" Just (App raptor (Maybe.withDefault (Err "s") (outermostfirst rand)))
+    Var v 
+      -> Debug.log (interpolate "Cannot reduce Var {0}" [v]) Nothing
+    Lam v body
+      -> Debug.log (interpolate "Cannot reduce Lam {0}..." [v]) Nothing
+    Err s
+      -> Debug.log (interpolate "Cannot reduce Err: '{0}'" [s]) Nothing
+
+
  
 
 
@@ -71,7 +125,13 @@ printExpr expr =
     App raptor rand -> interpolate "({0} {1})" [printExpr raptor, printExpr rand]
     Err e -> e
 
-
+printTypes : Expr -> String
+printTypes expr =
+  case expr of
+    Var string -> interpolate "(Var {0})" [string]
+    Lam var body -> interpolate "(Lam \"{0}\" {1})" [var, printTypes body]
+    App raptor rand -> interpolate "(App {0} {1})" [printTypes raptor, printTypes rand]
+    Err e -> e
 
 store : String -> Expr
 store key =
@@ -88,5 +148,7 @@ store key =
       -> Lam "f" (App (Lam "x" (App (Var "f") (App (Var "x") (Var "x")))) (Lam "y" (App (Var "f") (App (Var "y") (Var "y")))))
     "Omega"
       -> App (Lam "x" (App (Var "x") (Var "x"))) (Lam "x" (App (Var "x") (Var "x")))
+    "experiment"
+      -> (App (Var "func") (App (Lam "y" (App (Var "func") (App (Var "y") (Var "y")))) (Lam "z" (App (Var "func") (App (Var "z") (Var "z"))))))
     _
       -> Err "Empty"
